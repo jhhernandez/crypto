@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 import sys
+import codecs
 
 MSGS = [
-    # "0000000000,0000000000,0000000000,0000000000,0000000000,00e0000000,0000000000,0000000000,0000000000,0000000000,0000000000,0000000000,0000000000,000000000"
     "315c4eeaa8b5f8aaf9174145bf43e1784b8fa00dc71d885a804e5ee9fa40b16349c146fb778cdf2d3aff021dfff5b403b510d0d0455468aeb98622b137dae857553ccd8883a7bc37520e06e515d22c954eba5025b8cc57ee59418ce7dc6bc41556bdb36bbca3e8774301fbcaa3b83b220809560987815f65286764703de0f3d524400a19b159610b11ef3e",
     "234c02ecbbfbafa3ed18510abd11fa724fcda2018a1a8342cf064bbde548b12b07df44ba7191d9606ef4081ffde5ad46a5069d9f7f543bedb9c861bf29c7e205132eda9382b0bc2c5c4b45f919cf3a9f1cb74151f6d551f4480c82b2cb24cc5b028aa76eb7b4ab24171ab3cdadb8356f",
     "32510ba9a7b2bba9b8005d43a304b5714cc0bb0c8a34884dd91304b8ad40b62b07df44ba6e9d8a2368e51d04e0e7b207b70b9b8261112bacb6c866a232dfe257527dc29398f5f3251a0d47e503c66e935de81230b59b7afb5f41afa8d661cb",
@@ -13,7 +13,8 @@ MSGS = [
     "32510bfbacfbb9befd54415da243e1695ecabd58c519cd4bd90f1fa6ea5ba47b01c909ba7696cf606ef40c04afe1ac0aa8148dd066592ded9f8774b529c7ea125d298e8883f5e9305f4b44f915cb2bd05af51373fd9b4af511039fa2d96f83414aaaf261bda2e97b170fb5cce2a53e675c154c0d9681596934777e2275b381ce2e40582afe67650b13e72287ff2270abcf73bb028932836fbdecfecee0a3b894473c1bbeb6b4913a536ce4f9b13f1efff71ea313c8661dd9a4ce",
     "315c4eeaa8b5f8bffd11155ea506b56041c6a00c8a08854dd21a4bbde54ce56801d943ba708b8a3574f40c00fff9e00fa1439fd0654327a3bfc860b92f89ee04132ecb9298f5fd2d5e4b45e40ecc3b9d59e9417df7c95bba410e9aa2ca24c5474da2f276baa3ac325918b2daada43d6712150441c2e04f6565517f317da9d3",
     "271946f9bbb2aeadec111841a81abc300ecaa01bd8069d5cc91005e9fe4aad6e04d513e96d99de2569bc5e50eeeca709b50a8a987f4264edb6896fb537d0a716132ddc938fb0f836480e06ed0fcd6e9759f40462f9cf57f4564186a2c1778f1543efa270bda5e933421cbe88a4a52222190f471e9bd15f652b653b7071aec59a2705081ffe72651d08f822c9ed6d76e48b63ab15d0208573a7eef027",
-    "466d06ece998b7a2fb1d464fed2ced7641ddaa3cc31c9941cf110abbf409ed39598005b3399ccfafb61d0315fca0a314be138a9f32503bedac8067f03adbf3575c3b8edc9ba7f537530541ab0f9f3cd04ff50d66f1d559ba520e89a2cb2a83"
+    "466d06ece998b7a2fb1d464fed2ced7641ddaa3cc31c9941cf110abbf409ed39598005b3399ccfafb61d0315fca0a314be138a9f32503bedac8067f03adbf3575c3b8edc9ba7f537530541ab0f9f3cd04ff50d66f1d559ba520e89a2cb2a83",
+    "32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904"
 ]
 
 def buf_xor(a, b): # xor two buffers of different lengths
@@ -31,27 +32,38 @@ def main():
         MSGS_BUF.append(bytearray.fromhex(msg))
 
     max_len = len(max(MSGS_BUF, key = len))
-    key = bytearray(max_len)
+    key = bytearray([
+        0x66, 0x39, 0x6E, 0x89, 0xC9, 0xDB, 0xD8, 0xCC, 0x98, 0x74, 0x35, 0x2A, 0xCD, 0x63, 0x95, 0x10,
+        0x2E, 0xAF, 0xCE, 0x78, 0xAA, 0x7F, 0xED, 0x28, 0xA0, 0x7F, 0x6B, 0xC9, 0x8D, 0x29, 0xC5, 0x0B,
+        0x69, 0xB0, 0x33, 0x9A, 0x19, 0xF8, 0xAA, 0x40, 0x1A, 0x9C, 0x6D, 0x70, 0x8F, 0x80, 0xC0, 0x66,
+        0xC7, 0x63, 0xFE, 0xF0, 0x12, 0x31, 0x48, 0xCD, 0xD8, 0xE8, 0x02, 0xD0, 0x5B, 0xA9, 0x87, 0x77,
+        0x33, 0x5D, 0xAE, 0xFC, 0xEC, 0xD5, 0x9C, 0x43, 0x3A, 0x6B, 0x26, 0x8B, 0x60, 0xBF, 0x4E, 0xf0,
+        0x3c, 0x9a, 0x61, 0x10, 0x98, 0xbb, 0x3e, 0x9a, 0x31, 0x61, 0xed, 0xc7, 0xb8, 0x04, 0xa3
+    ])
+    remainder = bytearray([0] * (max_len - len(key)))
+    key += remainder
+    key_indexes = []
 
-    for i, m1 in enumerate(MSGS_BUF):
-        for j in range(i + 1, len(MSGS_BUF)):
-            results.append((i, j, buf_xor(m1, MSGS_BUF[j])))
-            j = j + 1
-
-    for i, res in enumerate(results):
-        j, k, msg = res
-
-        # print('j: {0} k: {1} xor: {2}'.format(j, k, msg.hex()))
-
-        for l, byte in enumerate(msg):
-            if byte == 32 and MSGS_BUF[j][l] < 128:
-                print('inserting {0} in position {1}'.format(byte, l))
-                key[l] = byte
+    for i in range(len(key)):
+        if key[i] != 0:
+            key_indexes.append(i)
 
     print('key: ' + key.hex())
 
-    for msg in MSGS_BUF:
+    for i, msg in enumerate(MSGS_BUF):
         xor = buf_xor(msg, key)
-        print(chr(xor[52]), chr(xor[86]))
+        string = ''
+        for j, char in enumerate(msg):
+            if j in key_indexes and xor[j] < 128:
+                string += chr(xor[j])
+            else:
+                string += ' '
+
+        print('{0:2d}\t{1}'.format(i + 1, string))
+
+        # if len(xor) < 86:
+        #     print(i + 1, chr(xor[52]))
+        # else:
+        #     print(i + 1, chr(xor[52]), chr(xor[86]))
 
 main()
